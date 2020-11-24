@@ -7,8 +7,9 @@ import pandas as pd
 
 taxonomyID="txid8782" #Enter query taxonomy ID in quotes
 protein="glucose-6-phosphatase" #Enter query protein in quotes
-esearch_output="esearch_output" 
-subprocess.call("esearch -db Protein -query '" + taxonomyID + "[Organism:exp] AND " + protein + "[Protein])' | efetch -format fasta > " + esearch_output, shell=True)
+esearch_output="esearch_output"
+protein_specific="[Protein]" #If searching for a protein family, leave string blank. For a specific protein use [Protein]  
+subprocess.call("esearch -db Protein -query '" + taxonomyID + "[Organism] AND (" + protein + protein_specific + ")' | efetch -format fasta > " + esearch_output, shell=True)
 
 cons_output="cons_output"
 subprocess.call("cons -sequence " + esearch_output + " -outseq " + cons_output, shell=True) #Command outputs a sequence that best represents the input sequences
@@ -27,14 +28,17 @@ subprocess.call("/localdisk/data/BPSM/Assignment2/pullseq -i " + esearch_output 
 #plotcon reads a sequence alignment and draws a plot of the sequence conservation within windows over the alignment.
 window_size="6" #Number of columns to average alignment quality over. The larger this value is, the smoother the plot will be. (4 minimum) 
 plotcon_output="plot_output" #Option for user to name output plot  
-subprocess.call("plotcon -sequences " +  pullseq_output + " -graph svg -winsize " + window_size + " > " + plotcon_output ,shell=True) 
+subprocess.call("plotcon -sequences " +  pullseq_output + " -graph svg -winsize " + window_size,shell=True) 
+print("To view plot use command <display plotcon.svg> in terminal")
 
-#Motif directory created for patmatmotifs outputs
+#Motif directory created for patmatmotifs outputs. Option for user to choose directory name. 
 dir = "motifs"
 if os.path.exists(dir):
 	shutil.rmtree(dir)
 os.makedirs(dir)   
 
+#patmatmotifs reads a protein sequence and searches it against the PROSITE database of motifs.
 AccID = open(blastpAccID_output) 
 for ID in AccID:
 	subprocess.call("patmatmotifs -auto -sequence " + pullseq_output + " -rdirectory_outfile " + dir + " -sid1 " + ID,shell=True)
+print("View motif files from query sequences in chosen directory") 
